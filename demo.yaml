@@ -5,7 +5,6 @@ Parameters:
   KeyName:
     Description: EC2 KeyPair for RDP access to the Windows instance
     Type: AWS::EC2::KeyPair::KeyName
-    Default: windows-key  # ✅ Replace with your actual key name or remove if using Jenkins parameter
   InstanceType:
     Description: EC2 instance type
     Type: String
@@ -20,6 +19,33 @@ Parameters:
     ConstraintDescription: Must be a valid EC2 instance type.
 
 Resources:
+  WindowsInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      ImageId: ami-019d9dc96246b7eb9  # ✅ Windows Server 2019 AMI for ap-south-1 (Mumbai)
+      Tags:
+        - Key: Name
+          Value: WindowsServer
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          SubnetId: !Ref PublicSubnet
+          GroupSet:
+            - !Ref InstanceSecurityGroup
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow RDP access
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+          CidrIp: 0.0.0.0/0  # 🔓 Open for demo. Lock this down in production.
+
   VPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -65,33 +91,6 @@ Resources:
     Properties:
       SubnetId: !Ref PublicSubnet
       RouteTableId: !Ref RouteTable
-
-  InstanceSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Allow RDP access
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 3389
-          ToPort: 3389
-          CidrIp: 0.0.0.0/0  # 🔓 Open for demo. Restrict in production.
-
-  WindowsInstance:
-    Type: AWS::EC2::Instance
-    Properties:
-      InstanceType: !Ref InstanceType
-      KeyName: !Ref KeyName
-      ImageId: ami-0a18e006eaf1d7f28  # ✅ Windows Server 2019 Base AMI for ap-south-1
-      NetworkInterfaces:
-        - AssociatePublicIpAddress: true
-          DeviceIndex: 0
-          SubnetId: !Ref PublicSubnet
-          GroupSet:
-            - !Ref InstanceSecurityGroup
-      Tags:
-        - Key: Name
-          Value: WindowsServer
 
 Outputs:
   InstanceId:
