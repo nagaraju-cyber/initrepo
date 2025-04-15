@@ -4,7 +4,7 @@ Description: Launch a Windows Server 2019 EC2 instance in Mumbai (ap-south-1)
 Parameters:
   KeyName:
     Description: EC2 KeyPair for RDP access to the Windows instance
-    Type: AWS::EC2::KeyPair::jenkins-windows
+    Type: AWS::EC2::KeyPair::KeyName
   InstanceType:
     Description: EC2 instance type
     Type: String
