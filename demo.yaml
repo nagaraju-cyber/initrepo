@@ -8,7 +8,7 @@ Parameters:
   InstanceType:
     Description: EC2 instance type
     Type: String
-    Default: t2.micro
+    Default: t2.small
     AllowedValues:
       - t2.micro
       - t2.small
@@ -34,6 +34,29 @@ Resources:
           SubnetId: !Ref PublicSubnet
           GroupSet:
             - !Ref InstanceSecurityGroup
+            
+          UserData: 
+            Fn::Base64: !Sub |
+             <powershell>
+             # PowerShell script to be executed on Windows instance startup
+          
+             # Example: Installing IIS
+             Install-WindowsFeature -Name Web-Server
+
+             # Example: Ensure SSM agent is installed and running
+             if ((Get-Service -Name AmazonSSMAgent).Status -ne 'Running') {
+                 Start-Service AmazonSSMAgent
+             }
+
+             # Example: Running some custom script or setup
+             Write-Host "Running PowerShell UserData script"
+          
+             # Example: Create a file for testing
+             New-Item -Path "C:\temp\userdata-test.txt" -ItemType File -Force
+             Set-Content -Path "C:\temp\userdata-test.txt" -Value "UserData script executed at $(Get-Date)"
+          
+             # Additional PowerShell commands can be added as needed
+             </powershell>
 
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -100,3 +123,26 @@ Outputs:
   PublicIP:
     Description: Public IP Address
     Value: !GetAtt WindowsInstance.PublicIp
+    
+InstanceProfilePolicy:
+  Type: AWS::IAM::Policy
+  Properties:
+    PolicyName: EC2SSMAccessPolicy
+    Roles:
+      - !Ref InstanceRole  # The role you attach to your EC2 instance
+    PolicyDocument:
+      Version: '2012-10-17'
+      Statement:
+        - Effect: Allow
+          Action:
+            - 'ssm:SendCommand'
+            - 'ssm:ListCommands'
+            - 'ssm:DescribeInstanceInformation'
+            - 'ssm:GetCommandInvocation'
+            - 'ec2messages:*'
+            - 'ssm:UpdateInstanceInformation'
+            - 'cloudwatch:PutMetricData'
+            - 'ec2:DescribeInstances'
+          Resource: '*'
+
+
