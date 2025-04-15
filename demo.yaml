@@ -126,12 +126,26 @@ Outputs:
     Description: Public IP Address
     Value: !GetAtt WindowsInstance.PublicIp
     
-MyInstanceProfile:
+InstanceRole:
+  Type: AWS::IAM::Role
+  Properties:
+    AssumeRolePolicyDocument:
+      Version: "2012-10-17"
+      Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - ec2.amazonaws.com
+          Action:
+            - sts:AssumeRole
+    Path: "/"
+
+SSMPolicyForEC2:
   Type: AWS::IAM::Policy
   Properties:
     PolicyName: EC2SSMAccessPolicy
     Roles:
-      - !Ref InstanceRole  # The role you attach to your EC2 instance
+      - !Ref InstanceRole
     PolicyDocument:
       Version: '2012-10-17'
       Statement:
@@ -146,5 +160,12 @@ MyInstanceProfile:
             - 'cloudwatch:PutMetricData'
             - 'ec2:DescribeInstances'
           Resource: '*'
+
+MyInstanceProfile:
+  Type: AWS::IAM::InstanceProfile
+  Properties:
+    Roles:
+      - !Ref InstanceRole
+
 
 
