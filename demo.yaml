@@ -5,6 +5,47 @@ Parameters:
   KeyName:
     Description: EC2 KeyPair for RDP access to the Windows instance
     Type: AWS::EC2::KeyPair::KeyName
+
+InstanceRole:
+  Type: AWS::IAM::Role
+  Properties:
+    AssumeRolePolicyDocument:
+      Version: "2012-10-17"
+      Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - ec2.amazonaws.com
+          Action:
+            - sts:AssumeRole
+    Path: "/"
+
+SSMPolicyForEC2:
+  Type: AWS::IAM::Policy
+  Properties:
+    PolicyName: EC2SSMAccessPolicy
+    Roles:
+      - !Ref InstanceRole
+    PolicyDocument:
+      Version: '2012-10-17'
+      Statement:
+        - Effect: Allow
+          Action:
+            - 'ssm:SendCommand'
+            - 'ssm:ListCommands'
+            - 'ssm:DescribeInstanceInformation'
+            - 'ssm:GetCommandInvocation'
+            - 'ec2messages:*'
+            - 'ssm:UpdateInstanceInformation'
+            - 'cloudwatch:PutMetricData'
+            - 'ec2:DescribeInstances'
+          Resource: '*'
+
+MyInstanceProfile:
+  Type: AWS::IAM::InstanceProfile
+  Properties:
+    Roles:
+      - !Ref InstanceRole
   InstanceType:
     Description: EC2 instance type
     Type: String
@@ -126,46 +167,6 @@ Outputs:
     Description: Public IP Address
     Value: !GetAtt WindowsInstance.PublicIp
     
-InstanceRole:
-  Type: AWS::IAM::Role
-  Properties:
-    AssumeRolePolicyDocument:
-      Version: "2012-10-17"
-      Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-              - ec2.amazonaws.com
-          Action:
-            - sts:AssumeRole
-    Path: "/"
-
-SSMPolicyForEC2:
-  Type: AWS::IAM::Policy
-  Properties:
-    PolicyName: EC2SSMAccessPolicy
-    Roles:
-      - !Ref InstanceRole
-    PolicyDocument:
-      Version: '2012-10-17'
-      Statement:
-        - Effect: Allow
-          Action:
-            - 'ssm:SendCommand'
-            - 'ssm:ListCommands'
-            - 'ssm:DescribeInstanceInformation'
-            - 'ssm:GetCommandInvocation'
-            - 'ec2messages:*'
-            - 'ssm:UpdateInstanceInformation'
-            - 'cloudwatch:PutMetricData'
-            - 'ec2:DescribeInstances'
-          Resource: '*'
-
-MyInstanceProfile:
-  Type: AWS::IAM::InstanceProfile
-  Properties:
-    Roles:
-      - !Ref InstanceRole
 
 
 
