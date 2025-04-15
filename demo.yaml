@@ -28,6 +28,8 @@ Resources:
       Tags:
         - Key: Name
           Value: WindowsServer
+      IamInstanceProfilePolicy:
+        Ref: MyInstanceProfile
       NetworkInterfaces:
         - AssociatePublicIpAddress: true
           DeviceIndex: 0
@@ -124,7 +126,7 @@ Outputs:
     Description: Public IP Address
     Value: !GetAtt WindowsInstance.PublicIp
     
-InstanceProfilePolicy:
+MyInstanceProfile:
   Type: AWS::IAM::Policy
   Properties:
     PolicyName: EC2SSMAccessPolicy
